@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticStep
 import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsViewModel
 import kotlinx.coroutines.delay
@@ -28,7 +30,7 @@ fun DiagnosticsRunScreen(
     onGoToResult: () -> Unit,
     onBackToHome: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: DiagnosticsViewModel = hiltViewModel()
+    viewModel: DiagnosticsViewModel
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -38,10 +40,6 @@ fun DiagnosticsRunScreen(
 //    }
 
     LaunchedEffect(state.currentStep) {
-//        if(state.isRunning && state.currentStep !is DiagnosticStep.Completed){
-//            delay(800)
-//            viewModel.goToNextStep()
-//        }
         if(state.currentStep is DiagnosticStep.Completed){
             onGoToResult()
         }
@@ -67,6 +65,20 @@ fun DiagnosticsRunScreen(
             )
             Spacer(Modifier.height(16.dp))
 
+            if (state.isRunning) {
+                CircularProgressIndicator()
+                Spacer(Modifier.height(16.dp))
+            }
+
+            if (state.currentStep is DiagnosticStep.SpeakerTest) {
+                SpeakerQuestionSection(
+                    volume = state.speakerVolume,
+                    maxVolume = state.speakerMaxVolume,
+                    awaitingConfirmation = state.awaitingSpeakerConfirmation,
+                    onHeard = { viewModel.onSpeakerHeard(true) },
+                    onNotHeard = { viewModel.onSpeakerHeard(false) }
+                )
+            }
 
             if (!state.isRunning && state.currentStep !is DiagnosticStep.Completed) {
                 Button(onClick = { viewModel.startDiagnostics() }) {
@@ -104,6 +116,7 @@ private fun stepLabel(step: DiagnosticStep): String =
 private fun DiagnosticsRunScreenPreview() {
     DiagnosticsRunScreen(
         onGoToResult = {},
-        onBackToHome = {}
+        onBackToHome = {},
+        viewModel = viewModel()
     )
 }

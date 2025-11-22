@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.callinspector.diagnostics.presentation.ui.DiagnosticsHomeScreen
 import com.example.callinspector.diagnostics.presentation.ui.DiagnosticsResultScreen
 import com.example.callinspector.diagnostics.presentation.ui.DiagnosticsRunScreen
+import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsViewModel
 
 
 enum class RootRoute(val route: String) {
@@ -18,7 +19,7 @@ enum class RootRoute(val route: String) {
 }
 
 @Composable
-fun AppNavGraph() {
+fun AppNavGraph(diagnosticsViewModel: DiagnosticsViewModel) {
 
     val navController = rememberNavController()
     NavHost(
@@ -29,6 +30,7 @@ fun AppNavGraph() {
         composable(RootRoute.HOME.route) {
             DiagnosticsHomeScreen(
                 onStartClick = {
+                    diagnosticsViewModel.reset()          // 👈 reset state
                     navController.navigate(RootRoute.RUN.route)
                 }
             )
@@ -43,7 +45,9 @@ fun AppNavGraph() {
                         route = RootRoute.HOME.route,
                         inclusive = false
                     )
-                }
+                },
+                viewModel = diagnosticsViewModel
+
             )
 
         }
@@ -54,7 +58,9 @@ fun AppNavGraph() {
                         route = RootRoute.HOME.route,
                         inclusive = false
                     )
-                }
+                },
+                viewModel = diagnosticsViewModel
+
             )
         }
     }

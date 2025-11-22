@@ -2,8 +2,10 @@ package com.example.callinspector.diagnostics.presentation.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.callinspector.diagnostics.domain.model.SpeakerTestResult
 import com.example.callinspector.diagnostics.domain.usecase.RunAudioTestUseCase
 import com.example.callinspector.diagnostics.domain.usecase.RunSpeakerTestUseCase
+import com.example.callinspector.utils.loge
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +28,14 @@ sealed class DiagnosticStep {
 
 data class DiagnosticsUiState(
     val currentStep: DiagnosticStep = DiagnosticStep.Idle,
-    val isRunning: Boolean = false
+    val isRunning: Boolean = false,
+    val micSuccess: Boolean? = null,
+    // Speaker-related
+    val speakerSuccess: Boolean? = null,
+    val speakerPlaybackSucceeded: Boolean? = null,
+    val speakerVolume: Int = 0,
+    val speakerMaxVolume: Int = 0,
+    val awaitingSpeakerConfirmation: Boolean = false
 )
 
 @HiltViewModel
@@ -59,11 +68,16 @@ class DiagnosticsViewModel @Inject constructor(
                 )
             }
             val speakerResult = runSpeakerTestUseCase()
-
             _uiState.update {
                 it.copy(
-                    currentStep = DiagnosticStep.Completed,
-                    isRunning = false
+                    speakerPlaybackSucceeded = speakerResult.playbackSucceeded,
+                    speakerVolume = speakerResult.currentVolume,
+                    speakerMaxVolume = speakerResult.maxVolume,
+                    // don’t mark speakerSuccess yet, wait for user input
+                    awaitingSpeakerConfirmation = true,
+                    isRunning = false,
+                    // stay on SpeakerTest step until user answers
+                    currentStep = DiagnosticStep.SpeakerTest
                 )
             }
 
@@ -71,30 +85,17 @@ class DiagnosticsViewModel @Inject constructor(
 
     }
 
-//    fun goToNextStep() {
-//        viewModelScope.launch {
-//            val next = when (_uiState.value.currentStep) {
-//                DiagnosticStep.Idle -> DiagnosticStep.MicTest
-//                DiagnosticStep.MicTest -> DiagnosticStep.SpeakerTest
-//                DiagnosticStep.SpeakerTest -> DiagnosticStep.NetworkTest
-//                DiagnosticStep.NetworkTest -> DiagnosticStep.CameraTest
-//                DiagnosticStep.CameraTest -> DiagnosticStep.DeviceTest
-//                DiagnosticStep.DeviceTest -> DiagnosticStep.Completed
-//                DiagnosticStep.Completed -> DiagnosticStep.Completed
-//            }
-//
-//            _uiState.update {
-//                val running = next != DiagnosticStep.Completed
-//                it.copy(
-//                    currentStep = next,
-//                    isRunning = running
-//                )
-//            }
-//        }
-//    }
-
     fun reset() {
         _uiState.value = DiagnosticsUiState()
+    }
+    fun onSpeakerHeard(heard: Boolean) {
+        _uiState.update {
+            it.copy(
+                speakerSuccess = heard,
+                awaitingSpeakerConfirmation = false,
+                currentStep = DiagnosticStep.Completed
+            )
+        }
     }
 
 }
