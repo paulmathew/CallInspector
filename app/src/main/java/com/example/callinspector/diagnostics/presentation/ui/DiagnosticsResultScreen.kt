@@ -80,10 +80,18 @@ fun DiagnosticsResultContent(
             )
             Spacer(Modifier.height(12.dp))
 
+            ResultRow(
+                label = "Back Camera",
+                success = state.backCameraSuccess
+            )
+            Spacer(Modifier.height(12.dp))
+            // --- FRONT CAMERA ---
+            ResultRow(
+                label = "Front Camera",
+                success = state.frontCameraSuccess
+            )
             Spacer(Modifier.height(32.dp))
 
-
-            Spacer(Modifier.height(16.dp))
 
             Button(onClick = onBackToHome) {
                 Text("Back to home")

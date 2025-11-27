@@ -23,7 +23,9 @@ sealed class DiagnosticStep {
     data object MicTest : DiagnosticStep()
     data object SpeakerTest : DiagnosticStep()
     data object NetworkTest : DiagnosticStep()
-    data object CameraTest : DiagnosticStep()
+    // CHANGED: Split generic "CameraTest" into two specific steps
+    data object BackCameraTest : DiagnosticStep()
+    data object FrontCameraTest : DiagnosticStep()
     data object DeviceTest : DiagnosticStep()
     data object Completed : DiagnosticStep()
 
@@ -45,7 +47,12 @@ data class DiagnosticsUiState(
     val networkLatencyMs: Long? = null,
     val networkJitterMs: Long? = null,
     val networkDownloadKbps: Int? = null,
-    val networkPacketLossPercent: Int? = null
+    val networkPacketLossPercent: Int? = null,
+
+    // for Camera-related
+    // CHANGED: Separate results for each camera
+    val backCameraSuccess: Boolean? = null,
+    val frontCameraSuccess: Boolean? = null
 )
 
 @HiltViewModel
@@ -104,6 +111,7 @@ class DiagnosticsViewModel @Inject constructor(
     fun onSpeakerHeard(heard: Boolean) {
         _uiState.update {
             it.copy(
+                isRunning=true,
                 speakerSuccess = heard,
                 awaitingSpeakerConfirmation = false,
                 currentStep = DiagnosticStep.NetworkTest
@@ -132,9 +140,29 @@ class DiagnosticsViewModel @Inject constructor(
 
                     if (health.stage == TestStage.COMPLETE) {
                         delay(500)
-                        _uiState.update { it.copy(currentStep = DiagnosticStep.Completed) }
+                        _uiState.update { it.copy(currentStep = DiagnosticStep.BackCameraTest,isRunning=true) }
                     }
                 }
+        }
+    }
+    // NEW: Handle Back Camera Result -> Go to Front Camera
+    fun onBackCameraResult(success: Boolean) {
+        _uiState.update {
+            it.copy(
+                isRunning=true,
+                backCameraSuccess = success,
+                currentStep = DiagnosticStep.FrontCameraTest
+            )
+        }
+    }
+
+    // NEW: Handle Front Camera Result -> Finish
+    fun onFrontCameraResult(success: Boolean) {
+        _uiState.update {
+            it.copy(
+                frontCameraSuccess = success,
+                currentStep = DiagnosticStep.Completed
+            )
         }
     }
 

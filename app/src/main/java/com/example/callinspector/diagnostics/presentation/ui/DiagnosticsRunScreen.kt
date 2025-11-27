@@ -1,37 +1,41 @@
 package com.example.callinspector.diagnostics.presentation.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.VerticalAlignmentLine
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticStep
 import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsUiState
 import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsViewModel
-import com.example.callinspector.utils.loge
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.StateFlow
-import java.net.HttpURLConnection
-import java.net.URL
 
 @Composable
 fun DiagnosticsRunScreen(
@@ -56,6 +60,8 @@ fun DiagnosticsRunScreen(
         onBackToHome = onBackToHome,
         onStartDiagnostics = { viewModel.startDiagnostics() },
         onSpeakerHeard = { heard -> viewModel.onSpeakerHeard(heard) },
+        onBackCameraResult = { isPassed -> viewModel.onBackCameraResult(isPassed) },
+        onFrontCameraResult = { isPassed -> viewModel.onFrontCameraResult(isPassed) },
         modifier = modifier
     )
 }
@@ -67,6 +73,8 @@ fun DiagnosticsRunContent(
     onBackToHome: () -> Unit,
     onStartDiagnostics: () -> Unit,
     onSpeakerHeard: (Boolean) -> Unit,
+    onBackCameraResult: (Boolean) -> Unit,
+    onFrontCameraResult: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -76,7 +84,7 @@ fun DiagnosticsRunContent(
 //    }
 
     LaunchedEffect(state.currentStep) {
-        if(state.currentStep is DiagnosticStep.Completed){
+        if (state.currentStep is DiagnosticStep.Completed) {
             onGoToResult()
         }
     }
@@ -87,6 +95,7 @@ fun DiagnosticsRunContent(
         contentAlignment = Alignment.Center
     ) {
         Column(
+            verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -111,7 +120,7 @@ fun DiagnosticsRunContent(
                     volume = state.speakerVolume,
                     maxVolume = state.speakerMaxVolume,
                     awaitingConfirmation = state.awaitingSpeakerConfirmation,
-                    onHeard = {onSpeakerHeard(true) },
+                    onHeard = { onSpeakerHeard(true) },
                     onNotHeard = { onSpeakerHeard(false) }
                 )
             }
@@ -119,6 +128,27 @@ fun DiagnosticsRunContent(
                 NetworkStatusCard(state)
             }
 
+            // 1. Back Camera Step
+            if (state.currentStep is DiagnosticStep.BackCameraTest) {
+                Spacer(Modifier.height(16.dp))
+                CameraWrapper(
+                    lensFacing = CameraSelector.LENS_FACING_BACK,
+                    label = "Testing Back Camera...",
+                    onResult = { onBackCameraResult(it) }
+                )
+                Spacer(Modifier.height(16.dp))
+            }
+
+            // 2. Front Camera Step
+            if (state.currentStep is DiagnosticStep.FrontCameraTest) {
+                Spacer(Modifier.height(16.dp))
+                CameraWrapper(
+                    lensFacing = CameraSelector.LENS_FACING_FRONT,
+                    label = "Testing Front Camera...",
+                    onResult = { onFrontCameraResult(it) }
+                )
+                Spacer(Modifier.height(16.dp))
+            }
             if (!state.isRunning && state.currentStep !is DiagnosticStep.Completed) {
                 Button(onClick = { onStartDiagnostics() }) {
                     Text("Start")
@@ -135,8 +165,11 @@ fun DiagnosticsRunContent(
                 Text("Back to home")
             }
         }
+
     }
+
 }
+
 @Composable
 private fun stepLabel(step: DiagnosticStep): String =
     when (step) {
@@ -144,7 +177,8 @@ private fun stepLabel(step: DiagnosticStep): String =
         DiagnosticStep.MicTest -> "Microphone test"
         DiagnosticStep.SpeakerTest -> "Speaker test"
         DiagnosticStep.NetworkTest -> "Network test"
-        DiagnosticStep.CameraTest -> "Camera test"
+        DiagnosticStep.BackCameraTest -> "Back Camera test"
+        DiagnosticStep.FrontCameraTest -> "Front Camera test"
         DiagnosticStep.DeviceTest -> "Device capability test"
         DiagnosticStep.Completed -> "All tests completed"
     }
@@ -155,7 +189,7 @@ private fun stepLabel(step: DiagnosticStep): String =
 private fun DiagnosticsRunScreenPreview() {
     // Create a dummy state
     val dummyState = DiagnosticsUiState(
-        currentStep = DiagnosticStep.NetworkTest,
+        currentStep = DiagnosticStep.BackCameraTest,
         isRunning = true,
         networkDownloadKbps = 15000 // Example speed
     )
@@ -165,6 +199,64 @@ private fun DiagnosticsRunScreenPreview() {
         onGoToResult = {},
         onBackToHome = {},
         onStartDiagnostics = {},
-        onSpeakerHeard = {}
+        onSpeakerHeard = {},
+        onBackCameraResult = {},
+        onFrontCameraResult = {},
     )
+}
+
+// Helper to avoid duplicating the permission check logic
+@Composable
+fun CameraWrapper(lensFacing: Int, label: String, onResult: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            hasCameraPermission = granted
+            if (!granted) {
+                onResult(false)
+            }
+        }
+    )
+
+    LaunchedEffect(Unit) {
+        if (!hasCameraPermission) {
+            permissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+    if (hasCameraPermission) {
+        Column(
+            Modifier.size(300.dp),
+            verticalArrangement = Arrangement.SpaceEvenly,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                label,
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(16.dp))
+
+            CameraPreviewScreen(
+                lensFacing = lensFacing,
+                onTestFinished = onResult
+            )
+
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun CameraPreview() {
+    CameraPreviewScreen(lensFacing = 1, onTestFinished = {})
 }
