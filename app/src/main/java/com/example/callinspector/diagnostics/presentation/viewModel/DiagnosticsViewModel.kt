@@ -3,10 +3,13 @@ package com.example.callinspector.diagnostics.presentation.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.callinspector.diagnostics.domain.model.SpeakerTestResult
+import com.example.callinspector.diagnostics.domain.model.TestStage
 import com.example.callinspector.diagnostics.domain.usecase.RunAudioTestUseCase
+import com.example.callinspector.diagnostics.domain.usecase.RunNetworkTestUseCase
 import com.example.callinspector.diagnostics.domain.usecase.RunSpeakerTestUseCase
 import com.example.callinspector.utils.loge
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,13 +38,21 @@ data class DiagnosticsUiState(
     val speakerPlaybackSucceeded: Boolean? = null,
     val speakerVolume: Int = 0,
     val speakerMaxVolume: Int = 0,
-    val awaitingSpeakerConfirmation: Boolean = false
+    val awaitingSpeakerConfirmation: Boolean = false,
+
+    // Network-related
+    val networkSuccess: Boolean? = null,
+    val networkLatencyMs: Long? = null,
+    val networkJitterMs: Long? = null,
+    val networkDownloadKbps: Int? = null,
+    val networkPacketLossPercent: Int? = null
 )
 
 @HiltViewModel
 class DiagnosticsViewModel @Inject constructor(
     private val runAudioTestUseCase: RunAudioTestUseCase,
-    private val runSpeakerTestUseCase: RunSpeakerTestUseCase
+    private val runSpeakerTestUseCase: RunSpeakerTestUseCase,
+    private val runNetworkTestUseCase: RunNetworkTestUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DiagnosticsUiState())
     val uiState: StateFlow<DiagnosticsUiState> = _uiState.asStateFlow()
@@ -62,8 +73,10 @@ class DiagnosticsViewModel @Inject constructor(
             }
             val audioResult = runAudioTestUseCase()
 
+
             _uiState.update {
                 it.copy(
+                    micSuccess = audioResult.success,
                     currentStep = DiagnosticStep.SpeakerTest
                 )
             }
@@ -93,8 +106,35 @@ class DiagnosticsViewModel @Inject constructor(
             it.copy(
                 speakerSuccess = heard,
                 awaitingSpeakerConfirmation = false,
-                currentStep = DiagnosticStep.Completed
+                currentStep = DiagnosticStep.NetworkTest
             )
+        }
+        _uiState.update {
+            it.copy(
+                isRunning = true,
+                currentStep = DiagnosticStep.NetworkTest
+            )
+        }
+        // 2. Start Network Test Stream
+        viewModelScope.launch {
+            runNetworkTestUseCase() // Returns Flow<NetworkHealth>
+                .collect { health ->
+                    _uiState.update { state ->
+                        state.copy(
+                            networkLatencyMs = health.latencyMs,
+                            networkJitterMs = health.jitterMs,
+                            networkDownloadKbps = (health.downloadSpeedMbps * 1000).toInt(),
+                            networkPacketLossPercent = health.packetLossPercent,
+                            networkSuccess = if (health.stage == TestStage.COMPLETE) true else null,
+                            isRunning = health.stage != TestStage.COMPLETE
+                        )
+                    }
+
+                    if (health.stage == TestStage.COMPLETE) {
+                        delay(500)
+                        _uiState.update { it.copy(currentStep = DiagnosticStep.Completed) }
+                    }
+                }
         }
     }
 

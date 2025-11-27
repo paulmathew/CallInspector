@@ -1,9 +1,14 @@
 package com.example.callinspector.diagnostics.presentation.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsUiState
+import com.example.callinspector.ui.theme.CallInspectorTheme
 
 @Composable
 fun SpeakerQuestionSection(
@@ -67,7 +74,7 @@ fun SpeakerQuestionSection(
     }
 }
 
-@Preview()
+@Preview(showBackground = true)
 @Composable
 fun showSpeakerQuestionSection() {
     SpeakerQuestionSection(
@@ -78,3 +85,78 @@ fun showSpeakerQuestionSection() {
         maxVolume = 0
     )
 }
+
+@Composable
+fun NetworkStatusCard(state: DiagnosticsUiState) {
+    androidx.compose.material3.Card(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        colors = androidx.compose.material3.CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Network Diagnostics", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
+
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                NetworkStatItem("Latency", "${state.networkLatencyMs ?: 0} ms")
+                NetworkStatItem("Jitter", "${state.networkJitterMs ?: 0} ms")
+            }
+            Spacer(Modifier.height(8.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                val speedMbps = String.format("%.1f", (state.networkDownloadKbps ?: 0) / 1000.0)
+                NetworkStatItem("Download", "$speedMbps Mbps")
+                NetworkStatItem("Packet Loss", "${state.networkPacketLossPercent ?: 0}%")
+            }
+
+            if (state.isRunning) {
+                Spacer(Modifier.height(16.dp))
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                Text("Analyzing connection quality...", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+fun NetworkStatItem(label: String, value: String) {
+    Column {
+        Text(label, style = MaterialTheme.typography.bodySmall)
+        Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+    }
+}
+
+// Preview 1: The "Active" state (Spinner showing, partial data)
+@Preview(showBackground = true, name = "Network Test Running")
+@Composable
+fun PreviewNetworkStatus_Running() {
+    CallInspectorTheme {
+        NetworkStatusCard(
+            state = DiagnosticsUiState(
+                isRunning = true,
+                networkLatencyMs = 45,
+                networkJitterMs = 12,
+                networkDownloadKbps = 5400, // 5.4 Mbps
+                networkPacketLossPercent = 0
+            )
+        )
+    }
+}
+
+// Preview 2: The "Finished" state (Static results, no spinner)
+@Preview(showBackground = true, name = "Network Test Completed")
+@Composable
+fun PreviewNetworkStatus_Completed() {
+    CallInspectorTheme {
+        NetworkStatusCard(
+            state = DiagnosticsUiState(
+                isRunning = false,
+                networkLatencyMs = 42,
+                networkJitterMs = 3,
+                networkDownloadKbps = 15400, // 15.4 Mbps
+                networkPacketLossPercent = 0
+            )
+        )
+    }
+}
+

@@ -1,13 +1,17 @@
 package com.example.callinspector.diagnostics.presentation.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,9 +25,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticStep
+import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsUiState
 import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsViewModel
+import com.example.callinspector.utils.loge
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import java.net.HttpURLConnection
+import java.net.URL
 
 @Composable
 fun DiagnosticsRunScreen(
@@ -70,7 +78,7 @@ fun DiagnosticsRunScreen(
                 Spacer(Modifier.height(16.dp))
             }
 
-            if (state.currentStep is DiagnosticStep.SpeakerTest) {
+            if (state.currentStep is DiagnosticStep.SpeakerTest && !state.isRunning) {
                 SpeakerQuestionSection(
                     volume = state.speakerVolume,
                     maxVolume = state.speakerMaxVolume,
@@ -78,6 +86,9 @@ fun DiagnosticsRunScreen(
                     onHeard = { viewModel.onSpeakerHeard(true) },
                     onNotHeard = { viewModel.onSpeakerHeard(false) }
                 )
+            }
+            if (state.currentStep is DiagnosticStep.NetworkTest) {
+                NetworkStatusCard(state)
             }
 
             if (!state.isRunning && state.currentStep !is DiagnosticStep.Completed) {

@@ -9,6 +9,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -48,7 +49,23 @@ fun DiagnosticsResultScreen(
                 label = "Speaker",
                 success = state.speakerSuccess
             )
+            Spacer(Modifier.height(12.dp))
+            // --- NETWORK (With Technical Details) ---
+            // Convert Kbps back to Mbps for display
+            val downloadMbps = (state.networkDownloadKbps ?: 0) / 1000.0
+            val networkDetails = if (state.networkSuccess != null) {
+                "Latency: ${state.networkLatencyMs}ms  |  Jitter: ${state.networkJitterMs}ms\n" +
+                        "Download: ${String.format("%.1f", downloadMbps)} Mbps  |  Loss: ${state.networkPacketLossPercent}%"
+            } else null
 
+            ResultRow(
+                label = "Network Quality",
+                success = state.networkSuccess,
+                details = networkDetails
+            )
+            Spacer(Modifier.height(12.dp))
+
+            Spacer(Modifier.height(32.dp))
 
 
             Spacer(Modifier.height(16.dp))
@@ -63,7 +80,8 @@ fun DiagnosticsResultScreen(
 @Composable
 private fun ResultRow(
     label: String,
-    success: Boolean?
+    success: Boolean?,
+    details: String? = null
 ) {
     val statusText = when (success) {
         null -> "Not run"
@@ -82,8 +100,32 @@ private fun ResultRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = label, style = MaterialTheme.typography.titleMedium)
-        Text(text = statusText, color = statusColor)
+        // Left Side: Label + Details
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            // Only show details if they exist (Senior UI polish)
+            if (details != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = details,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // Right Side: Status (PASS/FAIL)
+        Text(
+            text = statusText,
+            color = statusColor,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.bodyLarge
+        )
     }
 }
 @Preview(showBackground = true)
