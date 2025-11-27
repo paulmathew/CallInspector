@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.callinspector.diagnostics.domain.model.DeviceHealth
 import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsUiState
 import com.example.callinspector.ui.theme.CallInspectorTheme
 
@@ -157,6 +158,71 @@ fun PreviewNetworkStatus_Completed() {
                 networkPacketLossPercent = 0
             )
         )
+    }
+}
+
+@Composable
+fun DeviceSpecsCard(health: com.example.callinspector.diagnostics.domain.model.DeviceHealth) {
+    androidx.compose.material3.Card(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        colors = androidx.compose.material3.CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Device Capabilities", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(12.dp))
+
+            SpecRow("Model", "${health.brand} ${health.model}")
+            SpecRow("Android", "Version ${health.androidVersion}")
+            SpecRow("RAM", "${health.ramAvailableGb}GB free / ${health.ramTotalGb}GB")
+            SpecRow("Storage", "${health.storageFreeGb}GB free / ${health.storageTotalGb}GB")
+            SpecRow("Battery", "${health.batteryLevel}% ${if(health.isCharging) "⚡" else ""}")
+
+            Spacer(Modifier.height(8.dp))
+            Text("Sensors", style = MaterialTheme.typography.titleSmall, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+            val sensors = mutableListOf<String>()
+            if (health.hasGyroscope) sensors.add("Gyro")
+            if (health.hasAccelerometer) sensors.add("Accel")
+            if (health.hasMagnetometer) sensors.add("Magnet")
+            Text(sensors.joinToString(", "), style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
+fun SpecRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.bodySmall, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+    }
+}
+@Preview(showBackground = true, name = "Device Specs Card")
+@Composable
+fun PreviewDeviceSpecsCard() {
+
+    val mockHealth = DeviceHealth(
+        brand = "GOOGLE",
+        model = "Pixel 7 Pro",
+        androidVersion = "14",
+        coreCount = 8,
+        ramTotalGb = 12.0,
+        ramAvailableGb = 4.5,
+        storageTotalGb = 256.0,
+        storageFreeGb = 112.4,
+        batteryLevel = 78,
+        isCharging = true,
+        hasGyroscope = true,
+        hasAccelerometer = true,
+        hasMagnetometer = true
+    )
+
+
+    CallInspectorTheme {
+        DeviceSpecsCard(health = mockHealth)
     }
 }
 

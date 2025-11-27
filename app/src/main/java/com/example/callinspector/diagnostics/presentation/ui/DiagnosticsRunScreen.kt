@@ -149,6 +149,19 @@ fun DiagnosticsRunContent(
                 )
                 Spacer(Modifier.height(16.dp))
             }
+
+            if (state.currentStep is DiagnosticStep.DeviceTest) {
+                if (state.deviceHealth != null) {
+                    DeviceSpecsCard(state.deviceHealth)
+                } else {
+                    Text("Scanning Device Hardware...", modifier = Modifier.padding(top = 8.dp))
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+
+
+
+
             if (!state.isRunning && state.currentStep !is DiagnosticStep.Completed) {
                 Button(onClick = { onStartDiagnostics() }) {
                     Text("Start")

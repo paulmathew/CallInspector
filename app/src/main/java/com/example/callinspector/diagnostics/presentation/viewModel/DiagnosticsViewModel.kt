@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.callinspector.diagnostics.domain.model.SpeakerTestResult
 import com.example.callinspector.diagnostics.domain.model.TestStage
 import com.example.callinspector.diagnostics.domain.usecase.RunAudioTestUseCase
+import com.example.callinspector.diagnostics.domain.usecase.RunDeviceTestUseCase
 import com.example.callinspector.diagnostics.domain.usecase.RunNetworkTestUseCase
 import com.example.callinspector.diagnostics.domain.usecase.RunSpeakerTestUseCase
 import com.example.callinspector.utils.loge
@@ -52,7 +53,10 @@ data class DiagnosticsUiState(
     // for Camera-related
     // CHANGED: Separate results for each camera
     val backCameraSuccess: Boolean? = null,
-    val frontCameraSuccess: Boolean? = null
+    val frontCameraSuccess: Boolean? = null,
+
+    // Device health-related
+    val deviceHealth: com.example.callinspector.diagnostics.domain.model.DeviceHealth? = null
 )
 
 @HiltViewModel
@@ -60,6 +64,7 @@ class DiagnosticsViewModel @Inject constructor(
     private val runAudioTestUseCase: RunAudioTestUseCase,
     private val runSpeakerTestUseCase: RunSpeakerTestUseCase,
     private val runNetworkTestUseCase: RunNetworkTestUseCase,
+    private val runDeviceTestUseCase: RunDeviceTestUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DiagnosticsUiState())
     val uiState: StateFlow<DiagnosticsUiState> = _uiState.asStateFlow()
@@ -160,9 +165,25 @@ class DiagnosticsViewModel @Inject constructor(
     fun onFrontCameraResult(success: Boolean) {
         _uiState.update {
             it.copy(
-                frontCameraSuccess = success,
-                currentStep = DiagnosticStep.Completed
+                frontCameraSuccess = success
             )
+        }
+        runDeviceDiagnostics()
+    }
+    fun runDeviceDiagnostics() {
+        // Switch step immediately so UI shows "Scanning..."
+        _uiState.update { it.copy(currentStep = DiagnosticStep.DeviceTest,isRunning = true) }
+
+        viewModelScope.launch {
+            delay(1500)
+            val health = runDeviceTestUseCase()
+            _uiState.update {
+                it.copy(
+                    deviceHealth = health,
+
+                    currentStep = DiagnosticStep.Completed
+                )
+            }
         }
     }
 

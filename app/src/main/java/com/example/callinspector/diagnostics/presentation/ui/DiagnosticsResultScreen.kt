@@ -1,6 +1,8 @@
 package com.example.callinspector.diagnostics.presentation.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -47,6 +49,7 @@ fun DiagnosticsResultContent(
         contentAlignment = Alignment.Center
     ) {
         Column(
+            modifier = Modifier.verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -90,6 +93,12 @@ fun DiagnosticsResultContent(
                 label = "Front Camera",
                 success = state.frontCameraSuccess
             )
+            Spacer(Modifier.height(12.dp))
+            if (state.deviceHealth != null) {
+                Spacer(Modifier.height(24.dp))
+                // Reuse the component we built for the Run screen
+                DeviceSpecsCard(state.deviceHealth)
+            }
             Spacer(Modifier.height(32.dp))
 
 
