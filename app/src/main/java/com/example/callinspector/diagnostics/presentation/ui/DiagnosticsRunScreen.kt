@@ -42,6 +42,34 @@ fun DiagnosticsRunScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
+    // Navigation Logic
+    LaunchedEffect(state.currentStep) {
+        if (state.currentStep is DiagnosticStep.Completed) {
+            onGoToResult()
+        }
+    }
+
+    // Pass state and events to the pure UI composable
+    DiagnosticsRunContent(
+        state = state,
+        onGoToResult = onGoToResult,
+        onBackToHome = onBackToHome,
+        onStartDiagnostics = { viewModel.startDiagnostics() },
+        onSpeakerHeard = { heard -> viewModel.onSpeakerHeard(heard) },
+        modifier = modifier
+    )
+}
+
+@Composable
+fun DiagnosticsRunContent(
+    state: DiagnosticsUiState,
+    onGoToResult: () -> Unit,
+    onBackToHome: () -> Unit,
+    onStartDiagnostics: () -> Unit,
+    onSpeakerHeard: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+
     // -- for auto starting ----
 //    LaunchedEffect(Unit) {
 //        viewModel.startDiagnostics()
@@ -83,8 +111,8 @@ fun DiagnosticsRunScreen(
                     volume = state.speakerVolume,
                     maxVolume = state.speakerMaxVolume,
                     awaitingConfirmation = state.awaitingSpeakerConfirmation,
-                    onHeard = { viewModel.onSpeakerHeard(true) },
-                    onNotHeard = { viewModel.onSpeakerHeard(false) }
+                    onHeard = {onSpeakerHeard(true) },
+                    onNotHeard = { onSpeakerHeard(false) }
                 )
             }
             if (state.currentStep is DiagnosticStep.NetworkTest) {
@@ -92,7 +120,7 @@ fun DiagnosticsRunScreen(
             }
 
             if (!state.isRunning && state.currentStep !is DiagnosticStep.Completed) {
-                Button(onClick = { viewModel.startDiagnostics() }) {
+                Button(onClick = { onStartDiagnostics() }) {
                     Text("Start")
                 }
             } else if (!state.isRunning) {
@@ -125,9 +153,18 @@ private fun stepLabel(step: DiagnosticStep): String =
 @Preview(showBackground = true)
 @Composable
 private fun DiagnosticsRunScreenPreview() {
-    DiagnosticsRunScreen(
+    // Create a dummy state
+    val dummyState = DiagnosticsUiState(
+        currentStep = DiagnosticStep.NetworkTest,
+        isRunning = true,
+        networkDownloadKbps = 15000 // Example speed
+    )
+
+    DiagnosticsRunContent(
+        state = dummyState,
         onGoToResult = {},
         onBackToHome = {},
-        viewModel = viewModel()
+        onStartDiagnostics = {},
+        onSpeakerHeard = {}
     )
 }

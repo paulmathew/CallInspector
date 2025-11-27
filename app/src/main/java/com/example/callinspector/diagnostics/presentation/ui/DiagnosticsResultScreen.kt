@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsUiState
 import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsViewModel
 import com.example.callinspector.utils.loge
 
@@ -22,9 +23,23 @@ fun DiagnosticsResultScreen(
     onBackToHome: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DiagnosticsViewModel
-)
-  {
+) {
+    // 1. Collect state from ViewModel
     val state by viewModel.uiState.collectAsState()
+
+    // 2. Pass plain data to the content composable
+    DiagnosticsResultContent(
+        state = state,
+        onBackToHome = onBackToHome,
+        modifier = modifier
+    )
+}
+@Composable
+fun DiagnosticsResultContent(
+    state: DiagnosticsUiState,
+    onBackToHome: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -131,5 +146,18 @@ private fun ResultRow(
 @Preview(showBackground = true)
 @Composable
 private fun DiagnosticsResultScreenPreview() {
-    DiagnosticsResultScreen(onBackToHome = {}, viewModel = viewModel())
+    // Create a dummy state object
+    val dummyState = DiagnosticsUiState(
+        micSuccess = true,speakerSuccess = false,
+        networkSuccess = true,
+        networkLatencyMs = 45,
+        networkJitterMs = 5,
+        networkDownloadKbps = 15000, // 15 Mbps
+        networkPacketLossPercent = 0
+    )
+
+    DiagnosticsResultContent(
+        state = dummyState,
+        onBackToHome = {}
+    )
 }
