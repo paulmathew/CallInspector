@@ -17,6 +17,8 @@ mockk = "1.14.6"
 coroutines-test = "1.10.2"
 camerax = "1.4.1"
 turbine = "1.0.0"
+retrofit = "2.9.0"
+retrofit-logging-interceptor-version = "4.11.0"
 
 
 [libraries]
@@ -50,9 +52,15 @@ androidx-camera-view = { group = "androidx.camera", name = "camera-view", versio
 androidx-camera-extensions = { group = "androidx.camera", name = "camera-extensions", version.ref = "camerax" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+retrofit-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
+retrofit-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "retrofit-logging-interceptor-version" }
+
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt-version" }
+android-dynamic-feature = { id = "com.android.dynamic-feature", version.ref = "agp" }

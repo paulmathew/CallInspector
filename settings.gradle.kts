@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "CallInspector"
 include(":app")
- 
+include(":dynamic_status_module")

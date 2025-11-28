@@ -39,10 +39,6 @@ android {
     kotlinOptions {
         jvmTarget = "18"
     }
-    buildFeatures {
-        compose = true
-    }
-
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.15"
     }
@@ -56,6 +52,34 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    dynamicFeatures += setOf(":dynamic_status_module")
+    flavorDimensions += "environment"
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev" // Installs as separate app
+            versionNameSuffix = "-dev"
+            buildConfigField("String", "BASE_URL", "\"https://mpa3d61d126163e1dded.free.beeceptor.com/\"")
+        }
+
+        create("staging") {
+            dimension = "environment"
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-beta"
+
+            buildConfigField("String", "BASE_URL", "\"https://mpa3d61d126163e1dded.free.beeceptor.com/\"")
+        }
+
+        create("prod") {
+            dimension = "environment"
+            buildConfigField("String", "BASE_URL", "\"https://mpa3d61d126163e1dded.free.beeceptor.com/\"")
+        }
+    }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+
 }
 
 dependencies {
@@ -91,8 +115,7 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
-
-    // camera
+    
     // CameraX
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
@@ -103,5 +126,10 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
 
     testImplementation(libs.turbine)
+
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.retrofit.logging.interceptor)
+
 
 }
