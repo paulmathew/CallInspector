@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsUiState
@@ -56,6 +57,40 @@ fun DiagnosticsResultContent(
                 text = "Results",
                 style = MaterialTheme.typography.headlineMedium
             )
+
+            Spacer(Modifier.height(16.dp))
+
+            androidx.compose.material3.Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = androidx.compose.material3.CardDefaults.cardColors(
+                    // Green container for good grades (A/B), Red for bad (C/D/F)
+                    containerColor = if (state.finalScore >= 70)
+                        MaterialTheme.colorScheme.primaryContainer
+                    else
+                        MaterialTheme.colorScheme.errorContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp).fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "DEVICE GRADE",
+                        style = MaterialTheme.typography.labelMedium,
+                        letterSpacing = 2.sp
+                    )
+                    Text(
+                        text = state.finalGrade, // e.g. "A+"
+                        style = MaterialTheme.typography.displayLarge,
+                        fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        text = "${state.finalScore} / 100 Points",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            }
+            Spacer(Modifier.height(12.dp))
 
             ResultRow(
                 label = "Microphone",

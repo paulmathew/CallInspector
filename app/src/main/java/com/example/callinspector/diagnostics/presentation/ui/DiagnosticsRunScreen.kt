@@ -33,9 +33,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticStep
 import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsUiState
 import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsViewModel
+import com.example.callinspector.utils.loge
 
 @Composable
 fun DiagnosticsRunScreen(
@@ -62,6 +64,7 @@ fun DiagnosticsRunScreen(
         onSpeakerHeard = { heard -> viewModel.onSpeakerHeard(heard) },
         onBackCameraResult = { isPassed -> viewModel.onBackCameraResult(isPassed) },
         onFrontCameraResult = { isPassed -> viewModel.onFrontCameraResult(isPassed) },
+        finishDiagnostics = { viewModel.finishDiagnostics() },
         modifier = modifier
     )
 }
@@ -75,6 +78,7 @@ fun DiagnosticsRunContent(
     onSpeakerHeard: (Boolean) -> Unit,
     onBackCameraResult: (Boolean) -> Unit,
     onFrontCameraResult: (Boolean) -> Unit,
+    finishDiagnostics:()->Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -153,6 +157,9 @@ fun DiagnosticsRunContent(
             if (state.currentStep is DiagnosticStep.DeviceTest) {
                 if (state.deviceHealth != null) {
                     DeviceSpecsCard(state.deviceHealth)
+                    Button(onClick = { finishDiagnostics() }) {
+                        Text("Generate Final Report")
+                    }
                 } else {
                     Text("Scanning Device Hardware...", modifier = Modifier.padding(top = 8.dp))
                 }
@@ -160,15 +167,11 @@ fun DiagnosticsRunContent(
             }
 
 
+            loge("Current State "," state = $state")
 
-
-            if (!state.isRunning && state.currentStep !is DiagnosticStep.Completed) {
+            if (!state.isRunning && state.currentStep !is DiagnosticStep.Completed && state.currentStep is DiagnosticStep.Idle) {
                 Button(onClick = { onStartDiagnostics() }) {
                     Text("Start")
-                }
-            } else if (!state.isRunning) {
-                Button(onClick = onGoToResult) {
-                    Text("Go to results")
                 }
             }
 
@@ -215,6 +218,7 @@ private fun DiagnosticsRunScreenPreview() {
         onSpeakerHeard = {},
         onBackCameraResult = {},
         onFrontCameraResult = {},
+        finishDiagnostics = {}
     )
 }
 

@@ -56,7 +56,10 @@ data class DiagnosticsUiState(
     val frontCameraSuccess: Boolean? = null,
 
     // Device health-related
-    val deviceHealth: com.example.callinspector.diagnostics.domain.model.DeviceHealth? = null
+    val deviceHealth: com.example.callinspector.diagnostics.domain.model.DeviceHealth? = null,
+
+    val finalScore: Int = 0,
+    val finalGrade: String = "F"
 )
 
 @HiltViewModel
@@ -179,12 +182,62 @@ class DiagnosticsViewModel @Inject constructor(
             val health = runDeviceTestUseCase()
             _uiState.update {
                 it.copy(
+                    isRunning = false,
                     deviceHealth = health,
-
-                    currentStep = DiagnosticStep.Completed
+                    currentStep = DiagnosticStep.DeviceTest
                 )
             }
         }
+    }
+
+    //  Logic to calculate the grade
+    private fun calculateFinalScore() {
+        var score = 100
+        val state = _uiState.value
+
+        // Deductions
+        if (state.micSuccess != true) score -= 15
+        if (state.speakerSuccess != true) score -= 15
+
+        // Camera deductions
+        if (state.backCameraSuccess != true) score -= 15
+        if (state.frontCameraSuccess != true) score -= 15
+
+        // Network: If loss > 2% or speed < 5Mbps, deduct
+        val loss = state.networkPacketLossPercent ?: 0
+        val speed = (state.networkDownloadKbps ?: 0) / 1000.0
+
+        // Network deductions (Max -10)
+        if (state.networkSuccess != true || loss > 2 || speed < 5.0) {
+            score -= 10
+        }
+
+        // Device Health (Battery check)
+        // Note: Safe call ?. because deviceHealth might be null if test didn't run
+        val battery = state.deviceHealth?.batteryLevel ?: 0
+        val isCharging = state.deviceHealth?.isCharging == true
+
+        if (battery < 20 && !isCharging) score -= 5
+
+        // Cap at 0
+        score = score.coerceAtLeast(0)
+
+        // Calculate Grade
+        val grade = when {
+            score >= 90 -> "A+"
+            score >= 80 -> "A"
+            score >= 70 -> "B"
+            score >= 50 -> "C"
+            else -> "D"
+        }
+
+        _uiState.update { it.copy(finalScore = score, finalGrade = grade) }
+    }
+
+    //function called by UI (and Test)
+    fun finishDiagnostics() {
+        calculateFinalScore()
+        _uiState.update { it.copy(currentStep = DiagnosticStep.Completed) }
     }
 
 }
