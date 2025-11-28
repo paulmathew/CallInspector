@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">CallInspector</string>
+    <string name="title_dynamic_status_module">Status Dashboard</string>
 </resources>

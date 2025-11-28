@@ -15,7 +15,8 @@ import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsV
 enum class RootRoute(val route: String) {
     HOME("home"),
     RUN("run"),
-    RESULT("result")
+    RESULT("result"),
+    STATUS("status") // for dynamic Feature
 }
 
 @Composable
@@ -32,6 +33,9 @@ fun AppNavGraph(diagnosticsViewModel: DiagnosticsViewModel) {
                 onStartClick = {
                     diagnosticsViewModel.reset()          // 👈 reset state
                     navController.navigate(RootRoute.RUN.route)
+                },
+                onStatusClick = {
+                    navController.navigate(RootRoute.STATUS.route)
                 }
             )
         }
@@ -62,6 +66,14 @@ fun AppNavGraph(diagnosticsViewModel: DiagnosticsViewModel) {
                 viewModel = diagnosticsViewModel
 
             )
+        }
+        composable(RootRoute.STATUS.route) {
+                // REFLECTION: Load the class by name
+                val clazz = Class.forName("com.example.callinspector.status.StatusEntryPoint")
+                val feature = clazz.getDeclaredConstructor().newInstance() as DynamicFeature
+                // Render the content
+                feature.Content(onBack = { navController.popBackStack() })
+
         }
     }
 }
