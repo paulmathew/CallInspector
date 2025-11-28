@@ -58,7 +58,7 @@ The app follows strict **Clean Architecture** principles to ensure testability a
 
 ```mermaid
 graph TD
-    UI[Presentation Layer<br>(ViewModel + Compose)] --> Domain[Domain Layer<br>(UseCases + Interfaces)]
-    Domain --> Data[Data Layer<br>(Repositories + Implementations)]
-    Data --> Remote[Remote Data<br>(Sockets / Retrofit)]
-    Data --> Hardware[Device Hardware<br>(Camera / Mic)]
+    UI["Presentation Layer<br>(ViewModel + Compose)"] --> Domain["Domain Layer<br>(UseCases + Interfaces)"]
+    Domain --> Data["Data Layer<br>(Repositories + Implementations)"]
+    Data --> Remote["Remote Data<br>(Sockets / Retrofit)"]
+    Data --> Hardware["Device Hardware<br>(Camera / Mic)"]
