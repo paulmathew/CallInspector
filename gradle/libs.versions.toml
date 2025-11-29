@@ -50,6 +50,7 @@ androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", 
 androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
 androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
 androidx-camera-extensions = { group = "androidx.camera", name = "camera-extensions", version.ref = "camerax" }
+
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
