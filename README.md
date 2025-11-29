@@ -84,10 +84,28 @@ The app follows strict **Clean Architecture** principles to ensure testability a
 
 ```mermaid
 graph TD
-    UI["Presentation Layer<br>(ViewModel + Compose)"] --> Domain["Domain Layer<br>(UseCases + Interfaces)"]
-    Domain --> Data["Data Layer<br>(Repositories + Implementations)"]
-    Data --> Remote["Remote Data<br>(Sockets / Retrofit)"]
-    Data --> Hardware["Device Hardware<br>(Camera / Mic)"]
+    subgraph "Base Module (:app)"
+        UI["Presentation Layer<br>(ViewModels + Compose)"]
+        Domain["Domain Layer<br>(UseCases + Interfaces)"]
+        Data["Data Layer<br>(Repositories + Implementations)"]
+    end
+
+    subgraph "Dynamic Feature (:dynamic_status_module)"
+        DFM["Dynamic UI<br>(Status Dashboard)"]
+    end
+
+    %% Architecture Flow
+    UI --> Domain
+    Domain --> Data
+    
+    %% Dynamic Feature Logic (Logic in Base, UI in Dynamic)
+    DFM -->|Depends on| UI
+    UI -.->|Loads via Reflection| DFM
+
+    %% Data Sources
+    Data --> Remote["Remote Data<br>(TCP Sockets / Retrofit)"]
+    Data --> Hardware["Device Hardware<br>(CameraX / Mic)"]
+    Data --> Local["Persistence<br>(Room Database)"]
 ```
 ---
 ## 📸 Screenshots
