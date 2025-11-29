@@ -52,6 +52,24 @@ Demonstrates advanced modularization capabilities:
 
 ---
 
+## 📸 Screenshots
+
+| **Dashboard** | **Diagnostics** |
+|:---:|:---:|
+| <img src="docs/screenshots/dashboard.png" width="300" /> | <img src="docs/screenshots/network_test.png" width="300" /> |
+| *Status Check & Features* | *Real-time Socket Analysis* |
+
+| **Device Capabilities** | **Service Status (DFM)** |
+|:---:|:---:|
+| <img src="docs/screenshots/device_specs.png" width="300" /> | <img src="docs/screenshots/service_status.png" width="300" /> |
+| *Hardware Audit* | *Dynamic Feature Module* |
+
+| **Final Report** |
+|:---:|
+| <img src="docs/screenshots/final_grade.png" width="300" /> |
+| *Automated Scoring Engine* |
+
+---
 ## 🏗 Architecture Overview
 
 The app follows strict **Clean Architecture** principles to ensure testability and separation of concerns.
@@ -62,3 +80,6 @@ graph TD
     Domain --> Data["Data Layer<br>(Repositories + Implementations)"]
     Data --> Remote["Remote Data<br>(Sockets / Retrofit)"]
     Data --> Hardware["Device Hardware<br>(Camera / Mic)"]
+
+
+
