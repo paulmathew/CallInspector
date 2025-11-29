@@ -51,6 +51,25 @@ Demonstrates advanced modularization capabilities:
 | **Testing** | [Mockk](https://mockk.io/) + [Turbine](https://github.com/cashapp/turbine) | Unit Testing Flows & Logic |
 
 ---
+## 🏗 Architecture & Modularization
+
+The project follows a scalable **MVVM + Clean Architecture** pattern, designed to separate concerns and ensure testability.
+
+### Module Structure
+The app is modularized by feature to support **Dynamic Delivery** and **Strict Dependency Boundaries**.
+
+```text
+:app (Base Module)
+ ├── core/              # Shared Logic (Network, Dispatchers, Utils)
+ ├── diagnostics/       # Feature: Hardware Tests (Mic, Cam, Socket Probe)
+ ├── navigation/        # App Navigation Graph
+ └── status/            # Feature Logic: Service Status (ViewModel/Repo)
+
+:dynamic-status-module (Dynamic Feature)
+ └── presentation/      # UI: Service Status Screen (Compose)
+     └── Loaded via Reflection at runtime to reduce initial APK size.
+```
+---
 ## 🏗 Architecture Overview
 
 The app follows strict **Clean Architecture** principles to ensure testability and separation of concerns.
