@@ -6,17 +6,19 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.callinspector.diagnostics.presentation.ui.DiagnosticsHomeScreen
-import com.example.callinspector.diagnostics.presentation.ui.DiagnosticsResultScreen
-import com.example.callinspector.diagnostics.presentation.ui.DiagnosticsRunScreen
-import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsViewModel
+import com.example.callinspector.history.data.presentation.HistoryScreen
+import com.example.callinspector.presentation.ui.DiagnosticsHomeScreen
+import com.example.callinspector.presentation.ui.DiagnosticsResultScreen
+import com.example.callinspector.presentation.ui.DiagnosticsRunScreen
+import com.example.callinspector.presentation.viewModel.DiagnosticsViewModel
 
 
 enum class RootRoute(val route: String) {
     HOME("home"),
     RUN("run"),
     RESULT("result"),
-    STATUS("status") // for dynamic Feature
+    STATUS("status"), // for dynamic Feature
+    HISTORY("history")
 }
 
 @Composable
@@ -36,6 +38,9 @@ fun AppNavGraph(diagnosticsViewModel: DiagnosticsViewModel) {
                 },
                 onStatusClick = {
                     navController.navigate(RootRoute.STATUS.route)
+                },
+                onHistoryClick = {
+                    navController.navigate(RootRoute.HISTORY.route)
                 }
             )
         }
@@ -74,6 +79,11 @@ fun AppNavGraph(diagnosticsViewModel: DiagnosticsViewModel) {
                 // Render the content
                 feature.Content(onBack = { navController.popBackStack() })
 
+        }
+        composable(RootRoute.HISTORY.route) {
+            HistoryScreen(
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }

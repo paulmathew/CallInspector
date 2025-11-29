@@ -1,14 +1,14 @@
-package com.example.callinspector.diagnostics.presentation.viewModel
+package com.example.callinspector.presentation.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.callinspector.diagnostics.domain.model.SpeakerTestResult
+import com.example.callinspector.diagnostics.domain.model.DeviceHealth
 import com.example.callinspector.diagnostics.domain.model.TestStage
 import com.example.callinspector.diagnostics.domain.usecase.RunAudioTestUseCase
 import com.example.callinspector.diagnostics.domain.usecase.RunDeviceTestUseCase
 import com.example.callinspector.diagnostics.domain.usecase.RunNetworkTestUseCase
 import com.example.callinspector.diagnostics.domain.usecase.RunSpeakerTestUseCase
-import com.example.callinspector.utils.loge
+import com.example.callinspector.history.data.repository.HistoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,7 +56,7 @@ data class DiagnosticsUiState(
     val frontCameraSuccess: Boolean? = null,
 
     // Device health-related
-    val deviceHealth: com.example.callinspector.diagnostics.domain.model.DeviceHealth? = null,
+    val deviceHealth: DeviceHealth? = null,
 
     val finalScore: Int = 0,
     val finalGrade: String = "F"
@@ -67,7 +67,8 @@ class DiagnosticsViewModel @Inject constructor(
     private val runAudioTestUseCase: RunAudioTestUseCase,
     private val runSpeakerTestUseCase: RunSpeakerTestUseCase,
     private val runNetworkTestUseCase: RunNetworkTestUseCase,
-    private val runDeviceTestUseCase: RunDeviceTestUseCase
+    private val runDeviceTestUseCase: RunDeviceTestUseCase,
+    private val historyRepository: HistoryRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DiagnosticsUiState())
     val uiState: StateFlow<DiagnosticsUiState> = _uiState.asStateFlow()
@@ -237,6 +238,21 @@ class DiagnosticsViewModel @Inject constructor(
     //function called by UI (and Test)
     fun finishDiagnostics() {
         calculateFinalScore()
+        val state = _uiState.value
+
+        viewModelScope.launch {
+            historyRepository.saveReport(
+                score = state.finalScore,
+                grade = state.finalGrade,
+                mic = state.micSuccess == true,
+                speaker = state.speakerSuccess == true,
+                net = state.networkSuccess == true,
+                // Combine both cameras for simple storage, or add fields to Entity if you prefer
+                cam = (state.backCameraSuccess == true && state.frontCameraSuccess == true),
+                speed = (state.networkDownloadKbps ?: 0) / 1000.0,
+                latency = state.networkLatencyMs ?: 0
+            )
+        }
         _uiState.update { it.copy(currentStep = DiagnosticStep.Completed) }
     }
 

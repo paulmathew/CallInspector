@@ -1,4 +1,4 @@
-package com.example.callinspector.diagnostics.presentation.ui
+package com.example.callinspector.presentation.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,17 +8,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.callinspector.diagnostics.domain.model.DeviceHealth
-import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsUiState
+import com.example.callinspector.presentation.viewModel.DiagnosticsUiState
 import com.example.callinspector.ui.theme.CallInspectorTheme
 
 @Composable
@@ -54,8 +57,8 @@ fun SpeakerQuestionSection(
         )
         Spacer(Modifier.height(12.dp))
 
-        androidx.compose.foundation.layout.Row(
-            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(onClick = onHeard) {
@@ -89,9 +92,9 @@ fun showSpeakerQuestionSection() {
 
 @Composable
 fun NetworkStatusCard(state: DiagnosticsUiState) {
-    androidx.compose.material3.Card(
+    Card(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
-        colors = androidx.compose.material3.CardDefaults.cardColors(
+        colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
@@ -123,7 +126,7 @@ fun NetworkStatusCard(state: DiagnosticsUiState) {
 fun NetworkStatItem(label: String, value: String) {
     Column {
         Text(label, style = MaterialTheme.typography.bodySmall)
-        Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+        Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -162,10 +165,10 @@ fun PreviewNetworkStatus_Completed() {
 }
 
 @Composable
-fun DeviceSpecsCard(health: com.example.callinspector.diagnostics.domain.model.DeviceHealth) {
-    androidx.compose.material3.Card(
+fun DeviceSpecsCard(health: DeviceHealth) {
+    Card(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
-        colors = androidx.compose.material3.CardDefaults.cardColors(
+        colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
@@ -180,7 +183,7 @@ fun DeviceSpecsCard(health: com.example.callinspector.diagnostics.domain.model.D
             SpecRow("Battery", "${health.batteryLevel}% ${if(health.isCharging) "⚡" else ""}")
 
             Spacer(Modifier.height(8.dp))
-            Text("Sensors", style = MaterialTheme.typography.titleSmall, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+            Text("Sensors", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             val sensors = mutableListOf<String>()
             if (health.hasGyroscope) sensors.add("Gyro")
             if (health.hasAccelerometer) sensors.add("Accel")
@@ -197,7 +200,7 @@ fun SpecRow(label: String, value: String) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, style = MaterialTheme.typography.bodySmall, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+        Text(value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
     }
 }
 @Preview(showBackground = true, name = "Device Specs Card")

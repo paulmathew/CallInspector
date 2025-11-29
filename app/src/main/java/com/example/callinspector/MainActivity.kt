@@ -9,7 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsViewModel
+import com.example.callinspector.presentation.viewModel.DiagnosticsViewModel
 import com.example.callinspector.navigation.AppNavGraph
 import com.example.callinspector.ui.theme.CallInspectorTheme
 import dagger.hilt.android.AndroidEntryPoint

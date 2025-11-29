@@ -50,6 +50,7 @@ Demonstrates advanced modularization capabilities:
 | **Networking** | [Retrofit](https://square.github.io/retrofit/) + **Java Sockets** | API & Latency Probes |
 | **Hardware** | [CameraX](https://developer.android.com/training/camerax) | Hardware Abstraction |
 | **Testing** | [Mockk](https://mockk.io/) + [Turbine](https://github.com/cashapp/turbine) | Unit Testing Flows & Logic |
+| **Persistence** | [Room](https://developer.android.com/training/data-storage/room) | Local SQLite Database |
 
 ---
 ## 🏗 Architecture & Modularization
@@ -70,6 +71,12 @@ The app is modularized by feature to support **Dynamic Delivery** and **Strict D
  └── presentation/      # UI: Service Status Screen (Compose)
      └── Loaded via Reflection at runtime to reduce initial APK size.
 ```
+---
+### 📜 Audit History & Persistence
+* **Local Database (Room):** Automatically persists every diagnostic run for compliance and historical comparison.
+* **Structured Reporting:** Saves granular details (latency, jitter, sensor pass/fail status) alongside the final grade.
+* **Offline Access:** Review past audit results without network connectivity.
+
 ---
 ## 🏗 Architecture Overview
 

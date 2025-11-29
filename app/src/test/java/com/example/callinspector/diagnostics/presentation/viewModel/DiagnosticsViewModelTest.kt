@@ -1,7 +1,6 @@
 package com.example.callinspector.diagnostics.presentation.viewModel
 
 import org.junit.After
-import org.junit.Assert.*
 import org.junit.Before
 import com.example.callinspector.diagnostics.domain.model.AudioTestResult
 import com.example.callinspector.diagnostics.domain.model.DeviceHealth
@@ -12,8 +11,13 @@ import com.example.callinspector.diagnostics.domain.usecase.RunAudioTestUseCase
 import com.example.callinspector.diagnostics.domain.usecase.RunDeviceTestUseCase
 import com.example.callinspector.diagnostics.domain.usecase.RunNetworkTestUseCase
 import com.example.callinspector.diagnostics.domain.usecase.RunSpeakerTestUseCase
+import com.example.callinspector.history.data.repository.HistoryRepository
+import com.example.callinspector.presentation.viewModel.DiagnosticsViewModel
 import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -32,11 +36,10 @@ class DiagnosticsViewModelTest {
     private val audioUseCase: RunAudioTestUseCase = mockk()
     private val speakerUseCase: RunSpeakerTestUseCase = mockk()
     private val networkUseCase: RunNetworkTestUseCase = mockk()
-
     private val deviceUseCase: RunDeviceTestUseCase = mockk()
 
-
-
+    // 2. NEW MOCK: The History Repository
+    private val historyRepository: HistoryRepository = mockk()
 
     private lateinit var viewModel: DiagnosticsViewModel
     private val testDispatcher = StandardTestDispatcher()
@@ -52,13 +55,18 @@ class DiagnosticsViewModelTest {
         coEvery { networkUseCase() } returns flowOf(NetworkHealth(stage = TestStage.COMPLETE, downloadSpeedMbps = 100.0))
         coEvery { deviceUseCase() } returns DeviceHealth()
 
+        // Stub the save function so it does nothing (just runs) when called
+        coEvery {
+            historyRepository.saveReport(any(), any(), any(), any(), any(), any(), any(), any())
+        } just runs
 
-        // Init ViewModel
+        // Init ViewModel with the new dependency
         viewModel = DiagnosticsViewModel(
-            audioUseCase,
-            speakerUseCase,
-            networkUseCase,
-            runDeviceTestUseCase = deviceUseCase
+            runAudioTestUseCase = audioUseCase,
+            runSpeakerTestUseCase = speakerUseCase,
+            runNetworkTestUseCase = networkUseCase,
+            runDeviceTestUseCase = deviceUseCase,
+            historyRepository = historyRepository // <--- INJECTED HERE
         )
     }
 
@@ -68,9 +76,8 @@ class DiagnosticsViewModelTest {
     }
 
     @Test
-    fun `calculateScore deducts points for failed hardware`() = runTest {
+    fun `calculateScore deducts points for failed hardware AND saves history`() = runTest {
         // SCENARIO: Mic Fails, Speaker Passes, Network Fails, Camera Fails.
-        // Expected Logic: 100 - 15 (Mic) - 10 (Network) - 15 (Back Cam) - 15 (Front Cam) = 45 (Grade D/F)
 
         // 1. Mock the FAILURES
         coEvery { audioUseCase() } returns AudioTestResult(success = false, averageAmplitude = 0.0)
@@ -86,41 +93,45 @@ class DiagnosticsViewModelTest {
 
         // Start -> Runs Mic Test (which we mocked to fail)
         viewModel.startDiagnostics()
-        testDispatcher.scheduler.advanceUntilIdle() // Wait for coroutines
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Speaker Test -> User says "Yes" (Pass)
         viewModel.onSpeakerHeard(true)
-        testDispatcher.scheduler.advanceUntilIdle() // Triggers Network Test
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Camera Tests -> User/System reports Fail
         viewModel.onBackCameraResult(false)
         viewModel.onFrontCameraResult(false)
 
         // Device Test (Triggered auto after Front Camera)
-        // If your code has runDeviceDiagnostics(), it runs here.
         testDispatcher.scheduler.advanceUntilIdle()
 
         // 3. Generate Report
         viewModel.finishDiagnostics()
 
+        // Wait for the save coroutine to finish
+        testDispatcher.scheduler.advanceUntilIdle()
+
         // 4. ASSERT (The "Proof")
         val state = viewModel.uiState.value
 
-        // Let's calculate expected score based on your logic:
-        // Start: 100
-        // Mic Fail: -15
-        // Speaker Pass: -0
-        // Back Cam Fail: -15
-        // Front Cam Fail: -15
-        // Network Fail (Loss > 2% OR Speed < 5Mbps OR General Fail): -10
-        // Note: Your logic might deduct multiple times if you didn't use 'else if'.
-        // Based on the code I gave you, it was separate 'if' statements, so it might deduct -20 for network (Loss AND Speed).
-        // Let's assume ideal logic: 100 - 15 - 15 - 15 - 10 = 45.
+        // Verify Score Logic
+        assert(state.finalScore < 60) { "Score should be failing but was ${state.finalScore}" }
+        assertEquals("Grade should be D", "D", state.finalGrade)
 
-        // We verify that the score is LOW (indicating logic worked)
-        // Instead of exact number (which can change), we assert range or Grade
-
-        assert(state.finalScore < 60) { "Score should be failing (D or F) but was ${state.finalScore}" }
-        assertEquals("Grade should be C or D", "D", state.finalGrade) // Assuming < 50 is D/F
+        // Verify Persistence (NEW CHECK)
+        // Ensure that saveReport was actually called exactly once
+        coVerify(exactly = 1) {
+            historyRepository.saveReport(
+                score = state.finalScore,
+                grade = state.finalGrade,
+                mic = false, // matched our mock
+                speaker = true,
+                net = true, // Network test completed technically, even if results were bad
+                cam = false,
+                speed = any(),
+                latency = any()
+            )
+        }
     }
 }
