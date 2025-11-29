@@ -51,7 +51,18 @@ Demonstrates advanced modularization capabilities:
 | **Testing** | [Mockk](https://mockk.io/) + [Turbine](https://github.com/cashapp/turbine) | Unit Testing Flows & Logic |
 
 ---
+## 🏗 Architecture Overview
 
+The app follows strict **Clean Architecture** principles to ensure testability and separation of concerns.
+
+```mermaid
+graph TD
+    UI["Presentation Layer<br>(ViewModel + Compose)"] --> Domain["Domain Layer<br>(UseCases + Interfaces)"]
+    Domain --> Data["Data Layer<br>(Repositories + Implementations)"]
+    Data --> Remote["Remote Data<br>(Sockets / Retrofit)"]
+    Data --> Hardware["Device Hardware<br>(Camera / Mic)"]
+```
+---
 ## 📸 Screenshots
 
 | **Dashboard** | **Diagnostics** |
@@ -70,16 +81,5 @@ Demonstrates advanced modularization capabilities:
 | *Automated Scoring Engine* |
 
 ---
-## 🏗 Architecture Overview
-
-The app follows strict **Clean Architecture** principles to ensure testability and separation of concerns.
-
-```mermaid
-graph TD
-    UI["Presentation Layer<br>(ViewModel + Compose)"] --> Domain["Domain Layer<br>(UseCases + Interfaces)"]
-    Domain --> Data["Data Layer<br>(Repositories + Implementations)"]
-    Data --> Remote["Remote Data<br>(Sockets / Retrofit)"]
-    Data --> Hardware["Device Hardware<br>(Camera / Mic)"]
-
 
 
