@@ -1,7 +1,6 @@
 package com.example.callinspector.diagnostics.presentation.viewModel
 
 import org.junit.After
-import org.junit.Assert.*
 import org.junit.Before
 import com.example.callinspector.diagnostics.domain.model.AudioTestResult
 import com.example.callinspector.diagnostics.domain.model.DeviceHealth
@@ -12,6 +11,7 @@ import com.example.callinspector.diagnostics.domain.usecase.RunAudioTestUseCase
 import com.example.callinspector.diagnostics.domain.usecase.RunDeviceTestUseCase
 import com.example.callinspector.diagnostics.domain.usecase.RunNetworkTestUseCase
 import com.example.callinspector.diagnostics.domain.usecase.RunSpeakerTestUseCase
+import com.example.callinspector.presentation.viewModel.DiagnosticsViewModel
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers

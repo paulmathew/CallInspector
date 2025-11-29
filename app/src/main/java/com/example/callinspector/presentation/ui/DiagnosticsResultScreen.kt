@@ -1,9 +1,11 @@
-package com.example.callinspector.diagnostics.presentation.ui
+package com.example.callinspector.presentation.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,11 +17,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsUiState
-import com.example.callinspector.diagnostics.presentation.viewModel.DiagnosticsViewModel
-import com.example.callinspector.utils.loge
+import com.example.callinspector.presentation.viewModel.DiagnosticsUiState
+import com.example.callinspector.presentation.viewModel.DiagnosticsViewModel
 
 @Composable
 fun DiagnosticsResultScreen(
@@ -60,9 +59,9 @@ fun DiagnosticsResultContent(
 
             Spacer(Modifier.height(16.dp))
 
-            androidx.compose.material3.Card(
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = androidx.compose.material3.CardDefaults.cardColors(
+                colors = CardDefaults.cardColors(
                     // Green container for good grades (A/B), Red for bad (C/D/F)
                     containerColor = if (state.finalScore >= 70)
                         MaterialTheme.colorScheme.primaryContainer

@@ -1,4 +1,4 @@
-package com.example.callinspector.diagnostics.presentation.ui
+package com.example.callinspector.presentation.ui
 
 import android.view.ViewGroup
 import android.widget.LinearLayout
